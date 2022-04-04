@@ -9,7 +9,9 @@ import {
 	Post,
 	Query,
 	Session,
+	UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from 'src/guards/auth.guard';
 import { Serialize } from 'src/interceptors/serialize.interceptor';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -25,13 +27,11 @@ export class UsersController {
 	constructor(private usersService: UsersService, private authService: AuthService) {}
 
 	//? Get the currently signed in user
+	@UseGuards(AuthGuard)
 	@Get('current-user')
 	getUser(@CurrentUser() user: User) {
 		return user;
 	}
-	// getUser(@Session() session: { userId?: number }) {
-	// 	return this.usersService.findOne(session.userId);
-	// }
 
 	@Post('signup')
 	async createUser(@Body() body: CreateUserDto, @Session() session: { userId?: number }) {
@@ -59,8 +59,6 @@ export class UsersController {
 
 	@Get(':id')
 	async findUser(@Param('id') id: string) {
-		// console.log('HANDLER IS RUNNING');
-
 		const user = await this.usersService.findOne(parseInt(id));
 		if (!user) {
 			throw new NotFoundException('User not found');
